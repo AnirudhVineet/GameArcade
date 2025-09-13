@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rock Paper Scissors</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    overflow: hidden;
+    color: #fff;
+  }
+
+  h1 {
+    position: absolute;
+    top: 20px;
+    font-size: 2rem;
+    text-align: center;
+    width: 100%;
+    font-family: 'Press Start 2P', cursive;
+    color: #00ffdd;
+    text-shadow: 0 0 5px #00ffdd, 0 0 10px #00ffdd, 0 0 20px #00ffdd;
+  }
+
+  #gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 100px;
+  }
+
+  .choiceButtons {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 15px 25px;
+    font-size: 1rem;
+    background: #00ffdd;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    color: #111;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px #00ffdd;
+  }
+
+  .btn:hover {
+    background: #00c4b4;
+    transform: scale(1.1);
+  }
+
+  #scoreBoard {
+    font-size: 1.2rem;
+    margin: 5px 0;
+    color: #00ffdd;
+    text-shadow: 0 0 5px #00ffdd;
+  }
+
+  #result {
+    margin-top: 20px;
+    font-size: 1.3rem;
+    color: #ff00aa;
+    text-shadow: 0 0 5px #ff00aa, 0 0 10px #ff00aa;
+    text-align: center;
+  }
+
+  .displayChoices {
+    display: flex;
+    gap: 50px;
+    margin-top: 15px;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .playerDisplay {
+    padding: 10px 20px;
+    border: 2px solid #00ffdd;
+    border-radius: 15px;
+    min-width: 120px;
+    text-align: center;
+    box-shadow: 0 0 10px #00ffdd;
+  }
+
+  .choiceText {
+    font-size: 1.5rem;
+    margin-top: 5px;
+    color: #ffdd00;
+    text-shadow: 0 0 5px #ffdd00, 0 0 10px #ffdd00;
+  }
+
+  #redirectBtn {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    padding: 8px 12px;
+    background-color: #00ffdd;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 1000;
+    cursor: pointer;
+  }
+
+  #redirectBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+
+  #redirectBtn:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  }
+
+</style>
+</head>
+<body>
+<div id="redirectBtn">Go to Site</div>
+<h1>Rock Paper Scissors</h1>
+
+<div id="gameContainer">
+
+  <div class="choiceButtons" id="playerChoices">
+    <button class="btn" data-choice="rock">Rock ✊</button>
+    <button class="btn" data-choice="paper">Paper ✋</button>
+    <button class="btn" data-choice="scissors">Scissors ✌️</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="displayChoices">
+    <div class="playerDisplay" id="player1Display">
+      <strong>Player</strong>
+      <div class="choiceText" id="playerChoiceText">❓</div>
+    </div>
+    <div class="playerDisplay" id="computerDisplay">
+      <strong>Computer</strong>
+      <div class="choiceText" id="computerChoiceText">❓</div>
+    </div>
+  </div>
+
+  <div id="scoreBoard">Player Score: 0 | Computer Score: 0</div>
+  <button class="btn" id="restartBtn">Restart Game</button>
+</div>
+
+<script>
+  const playerChoices = document.getElementById('playerChoices');
+  const resultDiv = document.getElementById('result');
+  const scoreBoard = document.getElementById('scoreBoard');
+  const restartBtn = document.getElementById('restartBtn');
+  const playerChoiceText = document.getElementById('playerChoiceText');
+  const computerChoiceText = document.getElementById('computerChoiceText');
+
+  let playerScore = 0;
+  let computerScore = 0;
+  let choices = ['rock', 'paper', 'scissors'];
+
+  function determineWinner(player, computer) {
+    if(player === computer) return 'Draw!';
+    if((player==='rock' && computer==='scissors') || (player==='paper' && computer==='rock') || (player==='scissors' && computer==='paper')) return 'Player Wins!';
+    return 'Computer Wins!';
+  }
+
+  function updateScore(winner) {
+    if(winner.includes('Player')) playerScore++;
+    else if(winner.includes('Computer')) computerScore++;
+    scoreBoard.textContent = `Player Score: ${playerScore} | Computer Score: ${computerScore}`;
+  }
+
+  function resetRound() {
+    playerChoiceText.textContent = '❓';
+    computerChoiceText.textContent = '❓';
+    resultDiv.textContent = '';
+  }
+
+  playerChoices.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const playerChoice = btn.dataset.choice;
+      const computerChoice = choices[Math.floor(Math.random()*3)];
+
+      playerChoiceText.textContent = playerChoice.toUpperCase();
+      computerChoiceText.textContent = computerChoice.toUpperCase();
+
+      const winner = determineWinner(playerChoice, computerChoice);
+      resultDiv.textContent = winner;
+      updateScore(winner);
+
+      setTimeout(resetRound, 1500);
+    });
+  });
+
+  restartBtn.addEventListener('click', () => {
+    playerScore = 0;
+    computerScore = 0;
+    scoreBoard.textContent = `Player Score: 0 | Computer Score: 0`;
+    resetRound();
+  });
+
+  document.getElementById("redirectBtn").addEventListener("click", function() {
+    window.location.href = "index.html";
+  });
+</script>
+
+</body>
+</html>

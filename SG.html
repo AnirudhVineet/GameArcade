@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    overflow: hidden;
+    color: #fff;
+  }
+
+  h1 {
+    position: absolute;
+    top: 20px;
+    font-size: 2rem;
+    text-align: center;
+    width: 100%;
+    font-family: 'Press Start 2P', cursive;
+    color: #00ffdd;
+    text-shadow: 0 0 5px #00ffdd, 0 0 10px #00ffdd, 0 0 20px #00ffdd;
+  }
+
+  #gameContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  canvas {
+    background: #111;
+    border: 4px solid #00ffdd;
+    border-radius: 20px;
+  }
+
+  #scoreBoard, #highScore {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #00ffdd;
+    text-shadow: 0 0 5px #00ffdd;
+  }
+
+  .btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    background: #00ffdd;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #111;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .btn:hover {
+    background: #00c4b4;
+    transform: scale(1.1);
+  }
+
+#controlsHint {
+  position: absolute;
+  top: 80px; /* below the title */
+  text-align: center;
+  width: 100%;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+#redirectBtn {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    padding: 8px 12px;
+        background-color: #00ffdd;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 1000; /* ensures it’s always on top */
+}
+
+#redirectBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    cursor: pointer;
+}
+
+#redirectBtn:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+}
+
+</style>
+</head>
+<body>
+<div id="redirectBtn" target="_blank">Go to Site</div>
+<h1>Snake Game</h1>
+
+<div id="gameContainer">
+  <canvas id="gameCanvas" width="600" height="600"></canvas>
+  <div id="scoreBoard">Score: 0</div>
+  <div id="highScore">High Score: 0</div>
+  <button class="btn" id="restartBtn">Restart Game</button>
+</div>
+
+<div id="controlsHint">Press any arrow key to start. Use Arrow Keys or WASD to move.</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreBoard = document.getElementById('scoreBoard');
+  const highScoreBoard = document.getElementById('highScore');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const scale = 20;
+  const rows = canvas.height / scale;
+  const columns = canvas.width / scale;
+
+  let snake;
+  let fruit;
+  let score;
+  let highScore = 0;
+  let gameStarted = false;
+
+  class Snake {
+    constructor() {
+      this.body = [{x: Math.floor(columns/2), y: Math.floor(rows/2)}];
+      this.xSpeed = 0;
+      this.ySpeed = 0;
+    }
+
+    draw() {
+      ctx.fillStyle = '#00ffdd';
+      for (let segment of this.body) {
+        ctx.fillRect(segment.x * scale, segment.y * scale, scale, scale);
+        ctx.strokeStyle = '#00c4b4';
+        ctx.strokeRect(segment.x * scale, segment.y * scale, scale, scale);
+      }
+    }
+
+    update() {
+      const head = {x: this.body[0].x + this.xSpeed, y: this.body[0].y + this.ySpeed};
+
+      // Collision with walls
+      if(head.x < 0 || head.x >= columns || head.y < 0 || head.y >= rows) {
+        resetGame();
+        return;
+      }
+
+      // Self-collision
+      for (let segment of this.body) {
+        if (head.x === segment.x && head.y === segment.y) {
+          resetGame();
+          return;
+        }
+      }
+
+      this.body.unshift(head);
+
+      if (head.x === fruit.x && head.y === fruit.y) {
+        score++;
+        if(score > highScore) highScore = score;
+        placeFruit();
+      } else {
+        this.body.pop();
+      }
+    }
+
+    changeDirection(direction) {
+      switch(direction) {
+        case 'Up': if(this.ySpeed===0){this.xSpeed=0; this.ySpeed=-1;} break;
+        case 'Down': if(this.ySpeed===0){this.xSpeed=0; this.ySpeed=1;} break;
+        case 'Left': if(this.xSpeed===0){this.xSpeed=-1; this.ySpeed=0;} break;
+        case 'Right': if(this.xSpeed===0){this.xSpeed=1; this.ySpeed=0;} break;
+      }
+      gameStarted = true; // Start game on first valid input
+    }
+  }
+
+  function placeFruit() {
+    fruit = {
+      x: Math.floor(Math.random() * columns),
+      y: Math.floor(Math.random() * rows)
+    };
+
+    for (let segment of snake.body) {
+      if(segment.x === fruit.x && segment.y === fruit.y) {
+        placeFruit();
+        return;
+      }
+    }
+  }
+
+  function drawFruit() {
+    ctx.fillStyle = '#ff0055';
+    ctx.fillRect(fruit.x * scale, fruit.y * scale, scale, scale);
+  }
+
+  function resetGame() {
+    snake = new Snake();
+    score = 0;
+    gameStarted = false;
+    scoreBoard.textContent = 'Score: 0';
+    highScoreBoard.textContent = 'High Score: ' + highScore;
+    placeFruit();
+  }
+
+  window.addEventListener('keydown', e => {
+    const key = e.key;
+    if(key === 'ArrowUp' || key === 'w' || key === 'W') snake.changeDirection('Up');
+    else if(key === 'ArrowDown' || key === 's' || key === 'S') snake.changeDirection('Down');
+    else if(key === 'ArrowLeft' || key === 'a' || key === 'A') snake.changeDirection('Left');
+    else if(key === 'ArrowRight' || key === 'd' || key === 'D') snake.changeDirection('Right');
+  });
+
+  restartBtn.addEventListener('click', resetGame);
+
+  function gameLoop() {
+    if(!gameStarted) return; // Wait for first input
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    snake.update();
+    snake.draw();
+    drawFruit();
+    scoreBoard.textContent = 'Score: ' + score;
+    highScoreBoard.textContent = 'High Score: ' + highScore;
+  }
+
+  resetGame();
+  setInterval(gameLoop, 100);
+    document.getElementById("redirectBtn").addEventListener("click", function() {
+    window.location.href = "index.html";
+    });
+
+renderBoard();
+</script>
+
+</body>
+</html>

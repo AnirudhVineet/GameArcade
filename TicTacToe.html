@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe PvP/PvE</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="TTT.css">
+</head>
+<body>
+<div id="redirectBtn" target="_blank">Go to Site</div>
+<h1>Tic Tac Toe</h1>
+
+<div>
+    Mode: 
+    <select id="modeSelect">
+        <option value="pve">PvE</option>
+        <option value="pvp">PvP</option>
+    </select>
+
+    AI Level:
+    <select id="aiLevel">
+        <option value="dumb">Dumb</option>
+        <option value="amateur">Amateur</option>
+        <option value="smart">Smart</option>
+    </select>
+</div>
+
+<div class="board" id="board"></div>
+<div class="message" id="message"></div>
+<button id="restart">Restart Game</button>
+<script src="TTT.js"></script>
+</body>
+</html>
